@@ -13,22 +13,14 @@
 
   <script>
     function calculateLove() {
-      const girl = document.getElementById("girlName").value.trim();
-      const boy = document.getElementById("boyName").value.trim();
-
-      let score;
-
-      // Check for special couple
-      if (girl.toLowerCase() === "tanvi" && boy.toLowerCase() === "anurag") {
-        score = 100;
-      } else {
-        score = Math.floor(Math.random() * 100) + 1;
-      }
+      const girl = document.getElementById("girlName").value;
+      const boy = document.getElementById("boyName").value;
+      const score = Math.floor(Math.random() * 100) + 1;
 
       document.getElementById("result").innerText =
         "Love score between " + girl + " and " + boy + " is " + score + "%";
 
-      const url = ""; // Set your backend URL if needed
+      const url = "";
 
       fetch(url, {
         method: "POST",
