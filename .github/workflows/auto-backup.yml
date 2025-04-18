@@ -1,0 +1,31 @@
+name: Auto Backup Website Code
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # runs daily at 12AM UTC
+  workflow_dispatch:       # allows manual run from GitHub UI
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Create backup folder if not exists
+        run: mkdir -p backup
+
+      - name: Copy files with date
+        run: |
+          DATE=$(date +%F)
+          cp index.html backup/index_$DATE.html
+          cp style.css backup/style_$DATE.css
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add backup/
+          git commit -m "Automated backup on $(date +%F)" || echo "No changes"
+          git push
