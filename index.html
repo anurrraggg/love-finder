@@ -30,7 +30,7 @@
       document.getElementById("result").innerText =
         "Love score between " + girl + " and " + boy + " is " + score + "%";
 
-      const url = "https://script.google.com/macros/s/AKfycbwjHe6tUIEpXmeTc9GYhmwGeZKbK3llysm-l5vcLnNcUvZI3EmpJ-gKgaEAhC1f4wJE/exec"; // Your Google Apps Script URL
+      const url = "https://script.google.com/macros/s/AKfycbztzwTJlmK6kmjLBd-CLokm5vu5vDW-z3A7856Exa99kkIhVGGvWSoleQUIXNLGmuvv/exec"; // Your Google Apps Script URL
 
       // Send POST request to save data
       fetch(url, {
@@ -43,4 +43,27 @@
         headers: {
           "Content-Type": "application/json"
         }
+      })
+      .then(res => res.json())
+      .then(data => console.log("Saved:", data))
+      .catch(err => console.error("Error:", err));
 
+      // Fetch all past data (CSV) after saving
+      fetchPastData();
+    }
+
+    // Function to fetch and display past data
+    function fetchPastData() {
+      const url = "https://script.google.com/macros/s/AKfycbztzwTJlmK6kmjLBd-CLokm5vu5vDW-z3A7856Exa99kkIhVGGvWSoleQUIXNLGmuvv/exec"; // Your Google Apps Script URL
+
+      fetch(url)
+        .then(response => response.text())
+        .then(csvData => {
+          // Display CSV data in the <pre> element
+          document.getElementById("pastData").innerText = csvData;
+        })
+        .catch(err => console.error("Error fetching past data:", err));
+    }
+  </script>
+</body>
+</html>
