@@ -1,1 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Love Calculator</title>
+</head>
+<body>
+  <h2>Love Calculator 💖</h2>
+  <input id="girlName" placeholder="Enter girl's name"><br><br>
+  <input id="boyName" placeholder="Enter boy's name"><br><br>
+  <button onclick="calculateLove()">Calculate Love</button>
+
+  <p id="result"></p>
+
+  <h3>Past Data</h3>
+  <pre id="pastData"></pre> <!-- To display past data from CSV -->
+
+  <script>
+    function calculateLove() {
+      const girl = document.getElementById("girlName").value;
+      const boy = document.getElementById("boyName").value;
+
+      // Check for the special exception (Tanvi and Anurag)
+      let score;
+      if (girl.toLowerCase() === "tanvi" && boy.toLowerCase() === "anurag") {
+        score = 100;  // Special condition for Tanvi and Anurag
+      } else {
+        score = Math.floor(Math.random() * 100) + 1;  // Normal random score between 1 and 100
+      }
+
+      document.getElementById("result").innerText =
+        "Love score between " + girl + " and " + boy + " is " + score + "%";
+
+      const url = "https://script.google.com/macros/s/AKfycbwjHe6tUIEpXmeTc9GYhmwGeZKbK3llysm-l5vcLnNcUvZI3EmpJ-gKgaEAhC1f4wJE/exec"; // Your Google Apps Script URL
+
+      // Send POST request to save data
+      fetch(url, {
+        method: "POST",
+        body: JSON.stringify({
+          girlName: girl,
+          boyName: boy,
+          score: score
+        }),
+        headers: {
+          "Content-Type": "application/json"
+        }
 
