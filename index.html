@@ -14,62 +14,64 @@
   <h3>Past Data</h3>
   <pre id="pastData"></pre>
 
-  <script>
-    function calculateLove() {
-      const girl = document.getElementById("girlName").value;
-      const boy = document.getElementById("boyName").value;
+  <script type="module">
+    // Import Firebase SDKs
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+
+    // Your Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyCDG2lZpLgJ2PG2WX3TfVGI3HcnzcukC7s",
+      authDomain: "lovefinder-193df.firebaseapp.com",
+      databaseURL: "https://lovefinder-193df-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "lovefinder-193df",
+      storageBucket: "lovefinder-193df.appspot.com",
+      messagingSenderId: "572820717197",
+      appId: "1:572820717197:web:e67be9eaf6087cda4cacc4",
+      measurementId: "G-CHBWSKLVTS"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Calculate love and save to Firebase
+    window.calculateLove = function () {
+      const girl = document.getElementById("girlName").value.trim();
+      const boy = document.getElementById("boyName").value.trim();
 
       if (!girl || !boy) {
         alert("Please enter both names.");
         return;
       }
 
-      let score;
-      if (girl.toLowerCase() === "tanvi" && boy.toLowerCase() === "anurag") {
-        score = 100;
-      } else {
-        score = Math.floor(Math.random() * 100) + 1;
+      let score = (girl.toLowerCase() === "tanvi" && boy.toLowerCase() === "anurag") 
+        ? 100 
+        : Math.floor(Math.random() * 100) + 1;
+
+      document.getElementById("result").innerText = 
+        `Love score between ${girl} and ${boy} is ${score}%`;
+
+      const dataRef = ref(db, "loveData");
+      push(dataRef, {
+        girlName: girl,
+        boyName: boy,
+        score: score,
+        timestamp: new Date().toISOString()
+      });
+    };
+
+    // Fetch and show past data
+    const pastDataRef = ref(db, "loveData");
+    onValue(pastDataRef, (snapshot) => {
+      const data = snapshot.val();
+      const lines = [];
+      for (let key in data) {
+        const entry = data[key];
+        lines.push(`${entry.girlName} ❤️ ${entry.boyName} = ${entry.score}%`);
       }
-
-      document.getElementById("result").innerText =
-        "Love score between " + girl + " and " + boy + " is " + score + "%";
-
-      const url = "https://script.google.com/macros/s/AKfycbztzwTJlmK6kmjLBd-CLokm5vu5vDW-z3A7856Exa99kkIhVGGvWSoleQUIXNLGmuvv/exec";
-
-      // Corrected POST request
-      fetch(url, {
-        method: "POST",
-        body: JSON.stringify({
-          girlName: girl,
-          boyName: boy,
-          score: score
-        }),
-        headers: {
-          "Content-Type": "application/json"
-        }
-      })
-      .then(res => res.json())
-      .then(data => {
-        console.log("Saved:", data);
-        fetchPastData(); // Fetch updated data after save
-      })
-      .catch(err => console.error("Error:", err));
-    }
-
-    // Fetch past CSV data
-    function fetchPastData() {
-      const url = "https://script.google.com/macros/s/AKfycbztzwTJlmK6kmjLBd-CLokm5vu5vDW-z3A7856Exa99kkIhVGGvWSoleQUIXNLGmuvv/exec";
-
-      fetch(url)
-        .then(response => response.text())
-        .then(csvData => {
-          document.getElementById("pastData").innerText = csvData;
-        })
-        .catch(err => console.error("Error fetching past data:", err));
-    }
-
-    // Optional: auto-load past data when page opens
-    window.onload = fetchPastData;
+      document.getElementById("pastData").innerText = lines.reverse().join("\n");
+    });
   </script>
 </body>
 </html>
