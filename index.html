@@ -6,7 +6,103 @@
   <title>Love Calculator 💖</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
   <style>
-    /* Keep your original styles here... */
+    * {
+      box-sizing: border-box;
+      cursor: none;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f8e1f4, #d2e9f7);
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .container {
+      background: #ffffffdd;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+    }
+
+    h2 {
+      font-size: 2rem;
+      color: #ff4b91;
+      margin-bottom: 20px;
+    }
+
+    input {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+    }
+
+    input:focus {
+      border-color: #ff4b91;
+      outline: none;
+    }
+
+    button {
+      background: #ff4b91;
+      color: #fff;
+      padding: 12px 25px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #e84378;
+    }
+
+    #result {
+      font-size: 1.2rem;
+      margin-top: 25px;
+      color: #444;
+    }
+
+    /* Custom Cursor Styles */
+    .cursor {
+      width: 20px;
+      height: 20px;
+      background: rgba(255, 75, 145, 0.7);
+      border: 2px solid #ff4b91;
+      border-radius: 50%;
+      position: fixed;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: transform 0.1s ease;
+      z-index: 9999;
+    }
+
+    .cursor-ring {
+      width: 40px;
+      height: 40px;
+      border: 2px solid #ff4b91;
+      border-radius: 50%;
+      position: fixed;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      z-index: 9998;
+      transition: all 0.15s ease;
+    }
   </style>
 </head>
 <body>
