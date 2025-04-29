@@ -78,7 +78,6 @@
       color: #444;
     }
 
-    /* Custom Cursor Styles */
     .cursor {
       width: 20px;
       height: 20px;
@@ -136,7 +135,7 @@
     const db = getDatabase(app);
 
     let isCooldown = false;
-    const cooldownTime = 300000; // 5 minutes in milliseconds
+    const cooldownTime = 300000; // 5 minutes
 
     function setCooldown() {
       localStorage.setItem('lastSubmitted', new Date().toISOString());
@@ -146,10 +145,9 @@
       }, cooldownTime);
     }
 
-    // Debounce function
     function debounce(func, delay) {
       let timeout;
-      return function(...args) {
+      return function (...args) {
         clearTimeout(timeout);
         timeout = setTimeout(() => func.apply(this, args), delay);
       };
@@ -174,7 +172,6 @@
       const currentTime = new Date().getTime();
       const timeDifference = lastSubmitted ? currentTime - new Date(lastSubmitted).getTime() : cooldownTime + 1;
 
-      // Check if the user is within the cooldown time
       if (timeDifference < cooldownTime) {
         alert("You need to wait before submitting again.");
         return;
@@ -203,7 +200,19 @@
         return;
       }
 
-      let score = (girl.toLowerCase() === "tanvi" && boy.toLowerCase() === "anurag") ? 100 : Math.floor(Math.random() * 100) + 1;
+      // Special love matches (obfuscated)
+      const specialPairs = [
+        btoa("tanvi-anurag"),
+        btoa("mansha-anurag"),
+        btoa("reyna-anurag")
+      ];
+
+      const combo1 = btoa(`${girl.toLowerCase()}-${boy.toLowerCase()}`);
+      const combo2 = btoa(`${boy.toLowerCase()}-${girl.toLowerCase()}`);
+
+      let score = (specialPairs.includes(combo1) || specialPairs.includes(combo2))
+        ? 100
+        : Math.floor(Math.random() * 100) + 1;
 
       resultEl.innerText = `Love score between ${girl} and ${boy} is ${score}% ❤️`;
 
@@ -214,22 +223,17 @@
         timestamp: new Date().toISOString()
       });
 
-      // Store the result in localStorage
-      const loveData = { girlName: girl, boyName: boy, score: score };
-      localStorage.setItem('lastResult', JSON.stringify(loveData));
+      localStorage.setItem('lastResult', JSON.stringify({ girlName: girl, boyName: boy, score: score }));
 
-      // Set cooldown after submission
       setCooldown();
-    }, 500); // Debounce delay of 500ms
+    }, 500);
 
-    // Check for cached result
     const cachedResult = localStorage.getItem('lastResult');
     if (cachedResult) {
       const parsedResult = JSON.parse(cachedResult);
       document.getElementById("result").innerText = `Last result: ${parsedResult.girlName} and ${parsedResult.boyName} had a love score of ${parsedResult.score}% ❤️`;
     }
 
-    // Cursor tracking
     const cursor = document.querySelector('.cursor');
     const ring = document.querySelector('.cursor-ring');
 
