@@ -61,17 +61,7 @@
       });
     };
 
-    // Fetch and show past data
-    const pastDataRef = ref(db, "loveData");
-    onValue(pastDataRef, (snapshot) => {
-      const data = snapshot.val();
-      const lines = [];
-      for (let key in data) {
-        const entry = data[key];
-        lines.push(`${entry.girlName} ❤️ ${entry.boyName} = ${entry.score}%`);
-      }
-      document.getElementById("pastData").innerText = lines.reverse().join("\n");
-    });
+
   </script>
 </body>
 </html>
