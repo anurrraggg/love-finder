@@ -7,44 +7,59 @@
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #ffe6f0, #fff0f5);
+      background: linear-gradient(to right, #fceabb, #f8b500);
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      flex-direction: column;
       margin: 0;
     }
 
+    .container {
+      background: #fff;
+      padding: 30px 40px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      max-width: 400px;
+      animation: fadeIn 1s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
     h2 {
-      color: #d63384;
-      font-size: 2rem;
+      color: #ff4081;
+      margin-bottom: 20px;
     }
 
     input {
-      padding: 10px;
+      width: 100%;
+      padding: 12px;
       margin: 8px 0;
-      border: 2px solid #ffb6c1;
-      border-radius: 8px;
-      width: 250px;
-      text-align: center;
+      border: 2px solid #ffcccb;
+      border-radius: 10px;
       font-size: 1rem;
+      text-align: center;
     }
 
     button {
-      padding: 10px 20px;
+      width: 100%;
+      padding: 12px;
       font-size: 1rem;
       color: white;
       background-color: #ff69b4;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
-      margin-top: 10px;
+      margin-top: 12px;
+      transition: background 0.3s;
     }
 
-    button:disabled {
-      background-color: #ffb6c1;
-      cursor: not-allowed;
+    button:hover {
+      background-color: #e91e63;
     }
 
     #result {
@@ -54,32 +69,32 @@
       color: #6f42c1;
     }
 
-    pre {
-      background-color: #fff0f5;
+    #pastData {
+      margin-top: 15px;
+      font-size: 0.9rem;
+      color: #333;
+      background: #f9f9f9;
       padding: 10px;
       border-radius: 10px;
-      margin-top: 20px;
-      max-height: 200px;
+      max-height: 150px;
       overflow-y: auto;
     }
-
   </style>
 </head>
 <body>
-  <h2>💘 Love Calculator 💘</h2>
-  <input id="girlName" placeholder="Enter girl's name"><br>
-  <input id="boyName" placeholder="Enter boy's name"><br>
-  <button id="calcBtn" onclick="calculateLove()">Calculate Love</button>
-  <p id="result"></p>
-
-  
+  <div class="container">
+    <h2>💘 Love Calculator 💘</h2>
+    <input id="girlName" placeholder="Enter girl's name">
+    <input id="boyName" placeholder="Enter boy's name">
+    <button id="calcBtn" onclick="calculateLove()">Calculate Love</button>
+    <p id="result"></p>
+    <div id="pastData"></div>
+  </div>
 
   <script type="module">
-    // Firebase imports
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyCDG2lZpLgJ2PG2WX3TfVGI3HcnzcukC7s",
       authDomain: "lovefinder-193df.firebaseapp.com",
@@ -91,32 +106,39 @@
       measurementId: "G-CHBWSKLVTS"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
+    let lastGirl = '';
+    let lastBoy = '';
     let isCooldown = false;
 
     window.calculateLove = function () {
-      if (isCooldown) {
-        alert("Please wait before calculating again.");
-        return;
-      }
-
-      const girl = document.getElementById("girlName").value.trim();
-      const boy = document.getElementById("boyName").value.trim();
+      const girl = document.getElementById("girlName").value.trim().toLowerCase();
+      const boy = document.getElementById("boyName").value.trim().toLowerCase();
+      const resultBox = document.getElementById("result");
+      const btn = document.getElementById("calcBtn");
 
       if (!girl || !boy) {
         alert("Please enter both names!");
         return;
       }
 
-      let score = (girl.toLowerCase() === "tanvi" && boy.toLowerCase() === "anurag") 
-        ? 100 
-        : Math.floor(Math.random() * 100) + 1;
+      if (isCooldown) {
+        alert("Please wait a few seconds before trying again.");
+        return;
+      }
 
-      document.getElementById("result").innerText = 
-        `💞 Love score between ${girl} and ${boy} is ${score}%`;
+      if (girl === lastGirl && boy === lastBoy) {
+        resultBox.innerText = `You've already checked for ${girl} & ${boy}. Try a new pair! 💡`;
+        return;
+      }
+
+      let score = (girl === "tanvi" && boy === "anurag") ? 100 : Math.floor(Math.random() * 100) + 1;
+
+      resultBox.innerText = `💞 Love score between ${girl} and ${boy} is ${score}%`;
+      lastGirl = girl;
+      lastBoy = boy;
 
       const dataRef = ref(db, "loveData");
       push(dataRef, {
@@ -126,11 +148,10 @@
         timestamp: new Date().toISOString()
       });
 
-      // Cooldown logic
-      const btn = document.getElementById("calcBtn");
+      // Cooldown logic (8 seconds)
       isCooldown = true;
       btn.disabled = true;
-      let seconds = 10;
+      let seconds = 8;
       btn.innerText = `Wait (${seconds}s)`;
 
       const interval = setInterval(() => {
