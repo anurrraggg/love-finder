@@ -1,107 +1,125 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Love Calculator 💖</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --primary: #ff4081;
-      --background: #fff1f8;
-      --accent: #651fff;
-      --text: #212121;
-      --light: #ffffff;
-    }
-
     * {
-      margin: 0;
-      padding: 0;
       box-sizing: border-box;
+      cursor: none;
     }
 
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, var(--background), #f3e5f5);
-      color: var(--text);
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f8e1f4, #d2e9f7);
+      color: #333;
       display: flex;
       flex-direction: column;
       align-items: center;
-      min-height: 100vh;
-      padding: 50px 20px;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .container {
+      background: #ffffffdd;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
     }
 
     h2 {
-      color: var(--primary);
-      font-size: 2.5rem;
-      margin-bottom: 30px;
-      text-align: center;
-      animation: fadeIn 1.5s ease;
+      font-size: 2rem;
+      color: #ff4b91;
+      margin-bottom: 20px;
     }
 
     input {
-      padding: 12px 20px;
-      margin: 10px;
-      border: 2px solid #ddd;
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 2px solid #ccc;
       border-radius: 10px;
       font-size: 1rem;
-      width: 260px;
-      transition: all 0.3s ease;
+      transition: border-color 0.3s ease;
     }
 
     input:focus {
-      border-color: var(--primary);
+      border-color: #ff4b91;
       outline: none;
-      box-shadow: 0 0 8px rgba(255, 64, 129, 0.3);
     }
 
     button {
-      padding: 12px 40px;
-      margin-top: 20px;
-      background-color: var(--primary);
-      color: white;
+      background: #ff4b91;
+      color: #fff;
+      padding: 12px 25px;
+      font-size: 1rem;
       border: none;
-      border-radius: 30px;
-      font-size: 1.1rem;
-      font-weight: 500;
+      border-radius: 50px;
       cursor: pointer;
-      transition: background 0.3s ease, transform 0.2s ease;
+      margin-top: 20px;
+      transition: background 0.3s ease;
     }
 
     button:hover {
-      background-color: #f50057;
-      transform: translateY(-2px);
+      background: #e84378;
     }
 
     #result {
+      font-size: 1.2rem;
       margin-top: 25px;
-      font-size: 1.3rem;
-      color: var(--accent);
-      font-weight: 600;
-      animation: fadeIn 1s ease-in-out;
+      color: #444;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
+    /* Custom Cursor Styles */
+    .cursor {
+      width: 20px;
+      height: 20px;
+      background: rgba(255, 75, 145, 0.7);
+      border: 2px solid #ff4b91;
+      border-radius: 50%;
+      position: fixed;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: transform 0.1s ease;
+      z-index: 9999;
     }
 
-    @media (max-width: 480px) {
-      input, button {
-        width: 90%;
-      }
+    .cursor-ring {
+      width: 40px;
+      height: 40px;
+      border: 2px solid #ff4b91;
+      border-radius: 50%;
+      position: fixed;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      z-index: 9998;
+      transition: all 0.15s ease;
     }
   </style>
 </head>
 <body>
-  <h2>💖 Love Calculator 💖</h2>
-  <input id="girlName" placeholder="Enter girl's name" autocomplete="off" />
-  <input id="boyName" placeholder="Enter boy's name" autocomplete="off" />
-  <button id="calcBtn" onclick="calculateLove()">Calculate Love</button>
-  <p id="result"></p>
+  <div class="container">
+    <h2>Love Calculator 💖</h2>
+    <input type="text" id="girlName" placeholder="Enter girl's name">
+    <input type="text" id="boyName" placeholder="Enter boy's name">
+    <button onclick="calculateLove()">Calculate Love</button>
+    <p id="result"></p>
+  </div>
+
+  <div class="cursor"></div>
+  <div class="cursor-ring"></div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+    import { getDatabase, ref, push, query, get } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCDG2lZpLgJ2PG2WX3TfVGI3HcnzcukC7s",
@@ -117,72 +135,66 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    let lastGirl = "";
-    let lastBoy = "";
-    let cooldown = false;
-
-    window.calculateLove = function () {
-      const girlInput = document.getElementById("girlName");
-      const boyInput = document.getElementById("boyName");
-      const resultBox = document.getElementById("result");
-      const btn = document.getElementById("calcBtn");
-
-      const girl = girlInput.value.trim().toLowerCase();
-      const boy = boyInput.value.trim().toLowerCase();
+    window.calculateLove = async function () {
+      const girl = document.getElementById("girlName").value.trim();
+      const boy = document.getElementById("boyName").value.trim();
+      const resultEl = document.getElementById("result");
 
       if (!girl || !boy) {
         alert("Please enter both names.");
         return;
       }
 
-      if (girl === boy) {
-        alert("Girl and boy names cannot be the same.");
+      if (girl.toLowerCase() === boy.toLowerCase()) {
+        alert("Names must be different.");
         return;
       }
 
-      if (cooldown) {
-        alert("Please wait a moment before checking again.");
+      const q1 = query(ref(db, "loveData"));
+      const snapshot = await get(q1);
+      let duplicate = false;
+
+      if (snapshot.exists()) {
+        snapshot.forEach(entry => {
+          const data = entry.val();
+          if (
+            (data.girlName.toLowerCase() === girl.toLowerCase() &&
+             data.boyName.toLowerCase() === boy.toLowerCase()) ||
+            (data.girlName.toLowerCase() === boy.toLowerCase() &&
+             data.boyName.toLowerCase() === girl.toLowerCase())
+          ) {
+            duplicate = true;
+          }
+        });
+      }
+
+      if (duplicate) {
+        resultEl.innerText = "You've already tested this love match 💌";
         return;
       }
 
-      if (girl === lastGirl && boy === lastBoy) {
-        resultBox.innerText = `You've already checked this pair 💞`;
-        return;
-      }
+      let score = (girl.toLowerCase() === "tanvi" && boy.toLowerCase() === "anurag") ? 100 : Math.floor(Math.random() * 100) + 1;
 
-      let score = (girl === "tanvi" && boy === "anurag") ? 100 : Math.floor(Math.random() * 100) + 1;
-      resultBox.innerText = `💘 Love score between ${capitalize(girl)} and ${capitalize(boy)} is ${score}%`;
+      resultEl.innerText = `Love score between ${girl} and ${boy} is ${score}% ❤️`;
 
-      lastGirl = girl;
-      lastBoy = boy;
-
-      const dataRef = ref(db, "loveData");
-      push(dataRef, {
-        girlName: capitalize(girl),
-        boyName: capitalize(boy),
+      push(ref(db, "loveData"), {
+        girlName: girl,
+        boyName: boy,
         score: score,
         timestamp: new Date().toISOString()
       });
-
-      cooldown = true;
-      btn.disabled = true;
-      let seconds = 5;
-      const originalText = btn.innerText;
-      const interval = setInterval(() => {
-        btn.innerText = `Please wait (${seconds}s)`;
-        seconds--;
-        if (seconds < 0) {
-          clearInterval(interval);
-          btn.innerText = originalText;
-          btn.disabled = false;
-          cooldown = false;
-        }
-      }, 1000);
     };
 
-    function capitalize(str) {
-      return str.charAt(0).toUpperCase() + str.slice(1);
-    }
+    // Cursor tracking
+    const cursor = document.querySelector('.cursor');
+    const ring = document.querySelector('.cursor-ring');
+
+    document.addEventListener('mousemove', (e) => {
+      cursor.style.left = `${e.clientX}px`;
+      cursor.style.top = `${e.clientY}px`;
+      ring.style.left = `${e.clientX}px`;
+      ring.style.top = `${e.clientY}px`;
+    });
   </script>
 </body>
 </html>
