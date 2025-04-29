@@ -33,6 +33,12 @@
       text-align: center;
       width: 90%;
       max-width: 400px;
+      animation: fadeInSlide 1s ease-out forwards;
+    }
+
+    @keyframes fadeInSlide {
+      0% { transform: translateY(30px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
     }
 
     h2 {
@@ -65,17 +71,29 @@
       border-radius: 50px;
       cursor: pointer;
       margin-top: 20px;
-      transition: background 0.3s ease;
+      transition: background 0.3s ease, box-shadow 0.3s ease;
     }
 
     button:hover {
       background: #e84378;
+      box-shadow: 0 0 15px rgba(255, 75, 145, 0.6);
     }
 
     #result {
       font-size: 1.2rem;
       margin-top: 25px;
       color: #444;
+      opacity: 0;
+      animation: none;
+    }
+
+    .show-result {
+      animation: fadeInPop 0.8s ease-out forwards;
+    }
+
+    @keyframes fadeInPop {
+      0% { opacity: 0; transform: scale(0.8); }
+      100% { opacity: 1; transform: scale(1); }
     }
 
     .cursor {
@@ -158,6 +176,8 @@
       const boy = document.getElementById("boyName").value.trim();
       const resultEl = document.getElementById("result");
 
+      resultEl.classList.remove("show-result");
+
       if (!girl || !boy) {
         alert("Please enter both names.");
         return;
@@ -168,14 +188,13 @@
         return;
       }
 
-      const name1 = girl.toLowerCase();
-      const name2 = boy.toLowerCase();
-
-      // ❌ Block Faiz and Anurag
-      if ((name1 === "faiz" && name2 === "anurag") || (name1 === "anurag" && name2 === "faiz")) {
-        alert("This match is not allowed.");
-        resultEl.innerText = "Sorry, this match is blocked.";
-        return;
+      const forbiddenPairs = [["anurag", "faiz"], ["faiz", "anurag"]];
+      for (const [a, b] of forbiddenPairs) {
+        if (girl.toLowerCase() === a && boy.toLowerCase() === b) {
+          resultEl.innerText = "This match is not allowed ❌";
+          resultEl.classList.add("show-result");
+          return;
+        }
       }
 
       const lastSubmitted = localStorage.getItem('lastSubmitted');
@@ -189,39 +208,45 @@
 
       const q1 = query(ref(db, "loveData"));
       const snapshot = await get(q1);
-      let duplicate = false;
+      let matchFound = false;
 
       if (snapshot.exists()) {
         snapshot.forEach(entry => {
           const data = entry.val();
           if (
-            (data.girlName.toLowerCase() === name1 && data.boyName.toLowerCase() === name2) ||
-            (data.girlName.toLowerCase() === name2 && data.boyName.toLowerCase() === name1)
+            (data.girlName.toLowerCase() === girl.toLowerCase() &&
+             data.boyName.toLowerCase() === boy.toLowerCase()) ||
+            (data.girlName.toLowerCase() === boy.toLowerCase() &&
+             data.boyName.toLowerCase() === girl.toLowerCase())
           ) {
-            duplicate = true;
+            resultEl.innerText = `Love score between ${girl} and ${boy} is ${data.score}% ❤️ (from past match)`;
+            resultEl.classList.add("show-result");
+            matchFound = true;
           }
         });
       }
 
-      if (duplicate) {
-        resultEl.innerText = "You've already tested this love match 💌";
-        return;
-      }
+      if (matchFound) return;
 
-      // 🎯 Hidden 100% love scores
-      const specialPairs = [
-        btoa("tanvi-anurag"),
-        btoa("mansha-anurag"),
-        btoa("reyna-anurag")
+      let score = 0;
+      const pair = [girl.toLowerCase(), boy.toLowerCase()];
+      const always100 = [
+        ["anurag", "tanvi"],
+        ["tanvi", "anurag"],
+        ["anurag", "mansha"],
+        ["mansha", "anurag"],
+        ["anurag", "reyna"],
+        ["reyna", "anurag"]
       ];
 
-      const combo1 = btoa(`${name1}-${name2}`);
-      const combo2 = btoa(`${name2}-${name1}`);
-
-      const isSpecial = specialPairs.includes(combo1) || specialPairs.includes(combo2);
-      const score = isSpecial ? 100 : Math.floor(Math.random() * 100) + 1;
+      if (always100.some(p => p[0] === pair[0] && p[1] === pair[1])) {
+        score = 100;
+      } else {
+        score = Math.floor(Math.random() * 100) + 1;
+      }
 
       resultEl.innerText = `Love score between ${girl} and ${boy} is ${score}% ❤️`;
+      resultEl.classList.add("show-result");
 
       push(ref(db, "loveData"), {
         girlName: girl,
@@ -234,14 +259,15 @@
       setCooldown();
     }, 500);
 
-    // Show last result if available
     const cachedResult = localStorage.getItem('lastResult');
     if (cachedResult) {
       const parsed = JSON.parse(cachedResult);
-      document.getElementById("result").innerText = `Last result: ${parsed.girlName} and ${parsed.boyName} had a love score of ${parsed.score}% ❤️`;
+      const resultEl = document.getElementById("result");
+      resultEl.innerText =
+        `Last result: ${parsed.girlName} and ${parsed.boyName} had a love score of ${parsed.score}% ❤️`;
+      resultEl.classList.add("show-result");
     }
 
-    // Cursor animation
     const cursor = document.querySelector('.cursor');
     const ring = document.querySelector('.cursor-ring');
 
