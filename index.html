@@ -1,25 +1,86 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Love Calculator</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Love Calculator 💖</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #ffe6f0, #fff0f5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+      margin: 0;
+    }
+
+    h2 {
+      color: #d63384;
+      font-size: 2rem;
+    }
+
+    input {
+      padding: 10px;
+      margin: 8px 0;
+      border: 2px solid #ffb6c1;
+      border-radius: 8px;
+      width: 250px;
+      text-align: center;
+      font-size: 1rem;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      color: white;
+      background-color: #ff69b4;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button:disabled {
+      background-color: #ffb6c1;
+      cursor: not-allowed;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #6f42c1;
+    }
+
+    pre {
+      background-color: #fff0f5;
+      padding: 10px;
+      border-radius: 10px;
+      margin-top: 20px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+  </style>
 </head>
 <body>
-  <h2>Love Calculator 💖</h2>
-  <input id="girlName" placeholder="Enter girl's name"><br><br>
-  <input id="boyName" placeholder="Enter boy's name"><br><br>
-  <button onclick="calculateLove()">Calculate Love</button>
-
+  <h2>💘 Love Calculator 💘</h2>
+  <input id="girlName" placeholder="Enter girl's name"><br>
+  <input id="boyName" placeholder="Enter boy's name"><br>
+  <button id="calcBtn" onclick="calculateLove()">Calculate Love</button>
   <p id="result"></p>
 
   <h3>Past Data</h3>
-  <pre id="pastData"></pre>
+  <pre id="pastData">Firebase data will appear here (optional fetch function)</pre>
 
   <script type="module">
-    // Import Firebase SDKs
+    // Firebase imports
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+    import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
-    // Your Firebase config
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyCDG2lZpLgJ2PG2WX3TfVGI3HcnzcukC7s",
       authDomain: "lovefinder-193df.firebaseapp.com",
@@ -35,13 +96,19 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Calculate love and save to Firebase
+    let isCooldown = false;
+
     window.calculateLove = function () {
+      if (isCooldown) {
+        alert("Please wait before calculating again.");
+        return;
+      }
+
       const girl = document.getElementById("girlName").value.trim();
       const boy = document.getElementById("boyName").value.trim();
 
       if (!girl || !boy) {
-        alert("Please enter both names.");
+        alert("Please enter both names!");
         return;
       }
 
@@ -50,7 +117,7 @@
         : Math.floor(Math.random() * 100) + 1;
 
       document.getElementById("result").innerText = 
-        `Love score between ${girl} and ${boy} is ${score}%`;
+        `💞 Love score between ${girl} and ${boy} is ${score}%`;
 
       const dataRef = ref(db, "loveData");
       push(dataRef, {
@@ -59,9 +126,25 @@
         score: score,
         timestamp: new Date().toISOString()
       });
+
+      // Cooldown logic
+      const btn = document.getElementById("calcBtn");
+      isCooldown = true;
+      btn.disabled = true;
+      let seconds = 10;
+      btn.innerText = `Wait (${seconds}s)`;
+
+      const interval = setInterval(() => {
+        seconds--;
+        btn.innerText = `Wait (${seconds}s)`;
+        if (seconds <= 0) {
+          clearInterval(interval);
+          isCooldown = false;
+          btn.disabled = false;
+          btn.innerText = "Calculate Love";
+        }
+      }, 1000);
     };
-
-
   </script>
 </body>
 </html>
