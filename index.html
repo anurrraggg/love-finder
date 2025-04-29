@@ -190,6 +190,7 @@
       const q1 = query(ref(db, "loveData"));
       const snapshot = await get(q1);
       let duplicate = false;
+      let existingScore = null;
 
       if (snapshot.exists()) {
         snapshot.forEach(entry => {
@@ -199,12 +200,13 @@
             (data.girlName.toLowerCase() === name2 && data.boyName.toLowerCase() === name1)
           ) {
             duplicate = true;
+            existingScore = data.score; // Store the existing score
           }
         });
       }
 
       if (duplicate) {
-        resultEl.innerText = "You've already tested this love match 💌";
+        resultEl.innerText = `You've already tested this love match 💌. The love score is ${existingScore}% ❤️`;
         return;
       }
 
