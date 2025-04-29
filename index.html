@@ -33,12 +33,6 @@
       text-align: center;
       width: 90%;
       max-width: 400px;
-      animation: fadeInSlide 1s ease-out forwards;
-    }
-
-    @keyframes fadeInSlide {
-      0% { transform: translateY(30px); opacity: 0; }
-      100% { transform: translateY(0); opacity: 1; }
     }
 
     h2 {
@@ -71,31 +65,17 @@
       border-radius: 50px;
       cursor: pointer;
       margin-top: 20px;
-      transition: background 0.3s ease, box-shadow 0.3s ease;
+      transition: background 0.3s ease;
     }
 
     button:hover {
       background: #e84378;
-      box-shadow: 0 0 15px rgba(255, 75, 145, 0.6);
     }
 
     #result {
       font-size: 1.2rem;
       margin-top: 25px;
       color: #444;
-      opacity: 0;
-      visibility: hidden;
-      animation: none;
-    }
-
-    .show-result {
-      animation: fadeInPop 0.8s ease-out forwards;
-      visibility: visible;
-    }
-
-    @keyframes fadeInPop {
-      0% { opacity: 0; transform: scale(0.8); }
-      100% { opacity: 1; transform: scale(1); }
     }
 
     .cursor {
@@ -129,15 +109,17 @@
     <h2>Love Calculator 💖</h2>
     <input type="text" id="girlName" placeholder="Enter girl's name">
     <input type="text" id="boyName" placeholder="Enter boy's name">
-    <button id="calcButton">Calculate Love</button>
+    <button id="calcButton" onclick="calculateLove()">Calculate Love</button>
     <p id="result"></p>
   </div>
 
   <div class="cursor"></div>
   <div class="cursor-ring"></div>
 
-  <!-- Remove type="module" here to avoid issues with the script -->
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getDatabase, ref, push, query, get } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyCDG2lZpLgJ2PG2WX3TfVGI3HcnzcukC7s",
       authDomain: "lovefinder-193df.firebaseapp.com",
@@ -149,19 +131,32 @@
       measurementId: "G-CHBWSKLVTS"
     };
 
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-    function calculateLove() {
+    let isCooldown = false;
+    const cooldownTime = 300000; // 5 minutes
+
+    function setCooldown() {
+      localStorage.setItem('lastSubmitted', new Date().toISOString());
+      isCooldown = true;
+      setTimeout(() => {
+        isCooldown = false;
+      }, cooldownTime);
+    }
+
+    function debounce(func, delay) {
+      let timeout;
+      return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), delay);
+      };
+    }
+
+    window.calculateLove = debounce(async function () {
       const girl = document.getElementById("girlName").value.trim();
       const boy = document.getElementById("boyName").value.trim();
       const resultEl = document.getElementById("result");
-
-      resultEl.classList.remove("show-result");
-
-      // Debugging Logs
-      console.log("Girl's name: ", girl);
-      console.log("Boy's name: ", boy);
 
       if (!girl || !boy) {
         alert("Please enter both names.");
@@ -177,15 +172,25 @@
       for (const [a, b] of forbiddenPairs) {
         if (girl.toLowerCase() === a && boy.toLowerCase() === b) {
           resultEl.innerText = "This match is not allowed ❌";
-          resultEl.classList.add("show-result");
           return;
         }
       }
 
-      const q1 = firebase.database().ref("loveData");
-      q1.once('value').then((snapshot) => {
-        let matchFound = false;
-        snapshot.forEach((entry) => {
+      const lastSubmitted = localStorage.getItem('lastSubmitted');
+      const currentTime = new Date().getTime();
+      const timeDifference = lastSubmitted ? currentTime - new Date(lastSubmitted).getTime() : cooldownTime + 1;
+
+      if (timeDifference < cooldownTime) {
+        alert("You need to wait before submitting again.");
+        return;
+      }
+
+      const q1 = query(ref(db, "loveData"));
+      const snapshot = await get(q1);
+      let matchFound = false;
+
+      if (snapshot.exists()) {
+        snapshot.forEach(entry => {
           const data = entry.val();
           if (
             (data.girlName.toLowerCase() === girl.toLowerCase() &&
@@ -194,33 +199,50 @@
              data.boyName.toLowerCase() === girl.toLowerCase())
           ) {
             resultEl.innerText = `Love score between ${girl} and ${boy} is ${data.score}% ❤️ (from past match)`;
-            resultEl.classList.add("show-result");
             matchFound = true;
           }
         });
+      }
 
-        if (!matchFound) {
-          let score = Math.floor(Math.random() * 100) + 1;
-          resultEl.innerText = `Love score between ${girl} and ${boy} is ${score}% ❤️`;
-          resultEl.classList.add("show-result");
+      if (matchFound) return;
 
-          // Save the result to Firebase
-          firebase.database().ref('loveData').push({
-            girlName: girl,
-            boyName: boy,
-            score: score,
-            timestamp: new Date().toISOString()
-          });
-        }
+      let score = 0;
+      const pair = [girl.toLowerCase(), boy.toLowerCase()];
+      const always100 = [
+        ["anurag", "tanvi"],
+        ["tanvi", "anurag"],
+        ["anurag", "mansha"],
+        ["mansha", "anurag"],
+        ["anurag", "reyna"],
+        ["reyna", "anurag"]
+      ];
+
+      if (always100.some(p => p[0] === pair[0] && p[1] === pair[1])) {
+        score = 100;
+      } else {
+        score = Math.floor(Math.random() * 100) + 1;
+      }
+
+      resultEl.innerText = `Love score between ${girl} and ${boy} is ${score}% ❤️`;
+
+      push(ref(db, "loveData"), {
+        girlName: girl,
+        boyName: boy,
+        score: score,
+        timestamp: new Date().toISOString()
       });
+
+      localStorage.setItem('lastResult', JSON.stringify({ girlName: girl, boyName: boy, score: score }));
+      setCooldown();
+    }, 500);
+
+    const cachedResult = localStorage.getItem('lastResult');
+    if (cachedResult) {
+      const parsed = JSON.parse(cachedResult);
+      document.getElementById("result").innerText =
+        `Last result: ${parsed.girlName} and ${parsed.boyName} had a love score of ${parsed.score}% ❤️`;
     }
 
-    // Adding the event listener after the page loads
-    window.onload = () => {
-      document.getElementById("calcButton").addEventListener("click", calculateLove);
-    };
-
-    // Cursor animation
     const cursor = document.querySelector('.cursor');
     const ring = document.querySelector('.cursor-ring');
 
