@@ -78,6 +78,12 @@
       color: #444;
     }
 
+    #cooldownTimer {
+      margin-top: 10px;
+      color: #ff4b91;
+      font-weight: 500;
+    }
+
     .cursor {
       width: 20px;
       height: 20px;
@@ -111,6 +117,7 @@
     <input type="text" id="boyName" placeholder="Enter boy's name">
     <button id="calcButton" onclick="calculateLove()">Calculate Love</button>
     <p id="result"></p>
+    <p id="cooldownTimer"></p>
   </div>
 
   <div class="cursor"></div>
@@ -135,14 +142,26 @@
     const db = getDatabase(app);
 
     let isCooldown = false;
-    const cooldownTime = 4000; // ⏱️ Cooldown time reduced to 4 seconds
+    const cooldownTime = 3000; // 3 seconds
+    const cooldownTimerEl = document.getElementById('cooldownTimer');
 
     function setCooldown() {
-      localStorage.setItem('lastSubmitted', new Date().toISOString());
+      const end = Date.now() + cooldownTime;
       isCooldown = true;
-      setTimeout(() => {
-        isCooldown = false;
-      }, cooldownTime);
+      localStorage.setItem('lastSubmitted', new Date().toISOString());
+
+      const interval = setInterval(() => {
+        const now = Date.now();
+        const timeLeft = Math.max(0, Math.ceil((end - now) / 1000));
+
+        if (timeLeft <= 0) {
+          clearInterval(interval);
+          cooldownTimerEl.innerText = '';
+          isCooldown = false;
+        } else {
+          cooldownTimerEl.innerText = `Please wait ${timeLeft}s before trying again.`;
+        }
+      }, 250);
     }
 
     function debounce(func, delay) {
@@ -171,9 +190,8 @@
       const name1 = girl.toLowerCase();
       const name2 = boy.toLowerCase();
 
-      // ❌ Block Faiz and Anurag
+      // Block Faiz and Anurag
       if ((name1 === "faiz" && name2 === "anurag") || (name1 === "anurag" && name2 === "faiz")) {
-        alert("This match is not allowed.");
         resultEl.innerText = "Sorry, this match is blocked.";
         return;
       }
@@ -182,8 +200,8 @@
       const currentTime = new Date().getTime();
       const timeDifference = lastSubmitted ? currentTime - new Date(lastSubmitted).getTime() : cooldownTime + 1;
 
-      if (timeDifference < cooldownTime) {
-        alert("You need to wait before submitting again.");
+      if (timeDifference < cooldownTime || isCooldown) {
+        setCooldown(); // re-show timer if user tries again
         return;
       }
 
