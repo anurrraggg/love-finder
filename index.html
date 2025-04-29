@@ -135,7 +135,7 @@
     const db = getDatabase(app);
 
     let isCooldown = false;
-    const cooldownTime = 300000; // 5 minutes
+    const cooldownTime = 4000; // ⏱️ Cooldown time reduced to 4 seconds
 
     function setCooldown() {
       localStorage.setItem('lastSubmitted', new Date().toISOString());
@@ -200,7 +200,7 @@
             (data.girlName.toLowerCase() === name2 && data.boyName.toLowerCase() === name1)
           ) {
             duplicate = true;
-            existingScore = data.score; // Store the existing score
+            existingScore = data.score;
           }
         });
       }
@@ -210,7 +210,6 @@
         return;
       }
 
-      // 🎯 Hidden 100% love scores
       const specialPairs = [
         btoa("tanvi-anurag"),
         btoa("mansha-anurag"),
@@ -236,7 +235,6 @@
       setCooldown();
     }, 500);
 
-    // Show last result if available
     const cachedResult = localStorage.getItem('lastResult');
     if (cachedResult) {
       const parsed = JSON.parse(cachedResult);
