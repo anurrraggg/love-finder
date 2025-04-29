@@ -6,103 +6,7 @@
   <title>Love Calculator 💖</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
   <style>
-    * {
-      box-sizing: border-box;
-      cursor: none;
-    }
-
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #f8e1f4, #d2e9f7);
-      color: #333;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    .container {
-      background: #ffffffdd;
-      padding: 40px;
-      border-radius: 20px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-      text-align: center;
-      width: 90%;
-      max-width: 400px;
-    }
-
-    h2 {
-      font-size: 2rem;
-      color: #ff4b91;
-      margin-bottom: 20px;
-    }
-
-    input {
-      width: 90%;
-      padding: 10px;
-      margin: 10px 0;
-      border: 2px solid #ccc;
-      border-radius: 10px;
-      font-size: 1rem;
-      transition: border-color 0.3s ease;
-    }
-
-    input:focus {
-      border-color: #ff4b91;
-      outline: none;
-    }
-
-    button {
-      background: #ff4b91;
-      color: #fff;
-      padding: 12px 25px;
-      font-size: 1rem;
-      border: none;
-      border-radius: 50px;
-      cursor: pointer;
-      margin-top: 20px;
-      transition: background 0.3s ease;
-    }
-
-    button:hover {
-      background: #e84378;
-    }
-
-    #result {
-      font-size: 1.2rem;
-      margin-top: 25px;
-      color: #444;
-    }
-
-    /* Custom Cursor Styles */
-    .cursor {
-      width: 20px;
-      height: 20px;
-      background: rgba(255, 75, 145, 0.7);
-      border: 2px solid #ff4b91;
-      border-radius: 50%;
-      position: fixed;
-      pointer-events: none;
-      transform: translate(-50%, -50%);
-      transition: transform 0.1s ease;
-      z-index: 9999;
-    }
-
-    .cursor-ring {
-      width: 40px;
-      height: 40px;
-      border: 2px solid #ff4b91;
-      border-radius: 50%;
-      position: fixed;
-      pointer-events: none;
-      transform: translate(-50%, -50%);
-      z-index: 9998;
-      transition: all 0.15s ease;
-    }
+    /* Keep your original styles here... */
   </style>
 </head>
 <body>
@@ -110,7 +14,7 @@
     <h2>Love Calculator 💖</h2>
     <input type="text" id="girlName" placeholder="Enter girl's name">
     <input type="text" id="boyName" placeholder="Enter boy's name">
-    <button onclick="calculateLove()">Calculate Love</button>
+    <button id="calcButton" onclick="calculateLove()">Calculate Love</button>
     <p id="result"></p>
   </div>
 
@@ -135,7 +39,27 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    window.calculateLove = async function () {
+    let isCooldown = false;
+    const cooldownTime = 300000; // 5 minutes in milliseconds
+
+    function setCooldown() {
+      localStorage.setItem('lastSubmitted', new Date().toISOString());
+      isCooldown = true;
+      setTimeout(() => {
+        isCooldown = false;
+      }, cooldownTime);
+    }
+
+    // Debounce function
+    function debounce(func, delay) {
+      let timeout;
+      return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), delay);
+      };
+    }
+
+    window.calculateLove = debounce(async function () {
       const girl = document.getElementById("girlName").value.trim();
       const boy = document.getElementById("boyName").value.trim();
       const resultEl = document.getElementById("result");
@@ -147,6 +71,16 @@
 
       if (girl.toLowerCase() === boy.toLowerCase()) {
         alert("Names must be different.");
+        return;
+      }
+
+      const lastSubmitted = localStorage.getItem('lastSubmitted');
+      const currentTime = new Date().getTime();
+      const timeDifference = lastSubmitted ? currentTime - new Date(lastSubmitted).getTime() : cooldownTime + 1;
+
+      // Check if the user is within the cooldown time
+      if (timeDifference < cooldownTime) {
+        alert("You need to wait before submitting again.");
         return;
       }
 
@@ -183,7 +117,21 @@
         score: score,
         timestamp: new Date().toISOString()
       });
-    };
+
+      // Store the result in localStorage
+      const loveData = { girlName: girl, boyName: boy, score: score };
+      localStorage.setItem('lastResult', JSON.stringify(loveData));
+
+      // Set cooldown after submission
+      setCooldown();
+    }, 500); // Debounce delay of 500ms
+
+    // Check for cached result
+    const cachedResult = localStorage.getItem('lastResult');
+    if (cachedResult) {
+      const parsedResult = JSON.parse(cachedResult);
+      document.getElementById("result").innerText = `Last result: ${parsedResult.girlName} and ${parsedResult.boyName} had a love score of ${parsedResult.score}% ❤️`;
+    }
 
     // Cursor tracking
     const cursor = document.querySelector('.cursor');
