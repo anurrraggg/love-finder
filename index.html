@@ -3,44 +3,46 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Love Calculator 💖</title>
+  <title>Love Calculator 🖤</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&display=swap');
+
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #fceabb, #f8b500);
+      margin: 0;
+      padding: 0;
+      font-family: 'Cinzel Decorative', serif;
+      background: linear-gradient(to right, #1f1f1f, #3a0d2e);
+      color: #f8e1f4;
+      height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      margin: 0;
     }
 
     .container {
-      background: #fff;
-      padding: 30px 40px;
+      background: #121212;
+      border: 2px solid #aa336a;
+      padding: 30px;
       border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-      text-align: center;
       max-width: 400px;
-      animation: fadeIn 1s ease-in;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
+      text-align: center;
+      box-shadow: 0 0 20px #aa336a66;
     }
 
     h2 {
-      color: #ff4081;
+      color: #ff2e7e;
+      font-size: 2rem;
       margin-bottom: 20px;
     }
 
     input {
       width: 100%;
       padding: 12px;
-      margin: 8px 0;
-      border: 2px solid #ffcccb;
-      border-radius: 10px;
+      margin: 10px 0;
+      border: 1px solid #aa336a;
+      border-radius: 8px;
+      background: #1e1e1e;
+      color: #f8e1f4;
       font-size: 1rem;
       text-align: center;
     }
@@ -48,34 +50,33 @@
     button {
       width: 100%;
       padding: 12px;
-      font-size: 1rem;
+      background: #7a003c;
       color: white;
-      background-color: #ff69b4;
       border: none;
       border-radius: 10px;
+      font-size: 1rem;
+      margin-top: 10px;
       cursor: pointer;
-      margin-top: 12px;
-      transition: background 0.3s;
+      transition: background 0.3s ease;
     }
 
     button:hover {
-      background-color: #e91e63;
+      background: #ff1450;
     }
 
     #result {
       margin-top: 20px;
       font-size: 1.2rem;
-      font-weight: bold;
-      color: #6f42c1;
+      color: #ff82a9;
     }
 
     #pastData {
       margin-top: 15px;
       font-size: 0.9rem;
-      color: #333;
-      background: #f9f9f9;
+      background: #1c1c1c;
       padding: 10px;
       border-radius: 10px;
+      color: #cfcfcf;
       max-height: 150px;
       overflow-y: auto;
     }
@@ -83,10 +84,10 @@
 </head>
 <body>
   <div class="container">
-    <h2>💘 Love Calculator 💘</h2>
+    <h2>💔 Love Calculator 💔</h2>
     <input id="girlName" placeholder="Enter girl's name">
     <input id="boyName" placeholder="Enter boy's name">
-    <button id="calcBtn" onclick="calculateLove()">Calculate Love</button>
+    <button id="calcBtn" onclick="calculateLove()">Reveal Fate</button>
     <p id="result"></p>
     <div id="pastData"></div>
   </div>
@@ -102,8 +103,7 @@
       projectId: "lovefinder-193df",
       storageBucket: "lovefinder-193df.appspot.com",
       messagingSenderId: "572820717197",
-      appId: "1:572820717197:web:e67be9eaf6087cda4cacc4",
-      measurementId: "G-CHBWSKLVTS"
+      appId: "1:572820717197:web:e67be9eaf6087cda4cacc4"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -120,23 +120,23 @@
       const btn = document.getElementById("calcBtn");
 
       if (!girl || !boy) {
-        alert("Please enter both names!");
+        alert("The names must not be empty. 🕯️");
         return;
       }
 
       if (isCooldown) {
-        alert("Please wait a few seconds before trying again.");
+        alert("The spirits are still whispering... Wait a moment. ⏳");
         return;
       }
 
       if (girl === lastGirl && boy === lastBoy) {
-        resultBox.innerText = `You've already checked for ${girl} & ${boy}. Try a new pair! 💡`;
+        resultBox.innerText = `You've already summoned this bond... Try a different fate. 🦇`;
         return;
       }
 
       let score = (girl === "tanvi" && boy === "anurag") ? 100 : Math.floor(Math.random() * 100) + 1;
 
-      resultBox.innerText = `💞 Love score between ${girl} and ${boy} is ${score}%`;
+      resultBox.innerText = `💘 Fate score between ${girl} and ${boy} is ${score}%`;
       lastGirl = girl;
       lastBoy = boy;
 
@@ -148,10 +148,10 @@
         timestamp: new Date().toISOString()
       });
 
-      // Cooldown logic (8 seconds)
+      // Cooldown to prevent spam
       isCooldown = true;
       btn.disabled = true;
-      let seconds = 8;
+      let seconds = 6;
       btn.innerText = `Wait (${seconds}s)`;
 
       const interval = setInterval(() => {
@@ -161,7 +161,7 @@
           clearInterval(interval);
           isCooldown = false;
           btn.disabled = false;
-          btn.innerText = "Calculate Love";
+          btn.innerText = "Reveal Fate";
         }
       }, 1000);
     };
