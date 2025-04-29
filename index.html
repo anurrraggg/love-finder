@@ -129,18 +129,15 @@
     <h2>Love Calculator 💖</h2>
     <input type="text" id="girlName" placeholder="Enter girl's name">
     <input type="text" id="boyName" placeholder="Enter boy's name">
-    <button id="calcButton" onclick="calculateLove()">Calculate Love</button>
+    <button id="calcButton">Calculate Love</button>
     <p id="result"></p>
   </div>
 
   <div class="cursor"></div>
   <div class="cursor-ring"></div>
 
-  <!-- Moved the script tag to the end of the body -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getDatabase, ref, push, query, get } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
-
+  <!-- Remove type="module" here to avoid issues with the script -->
+  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCDG2lZpLgJ2PG2WX3TfVGI3HcnzcukC7s",
       authDomain: "lovefinder-193df.firebaseapp.com",
@@ -152,10 +149,10 @@
       measurementId: "G-CHBWSKLVTS"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    async function calculateLove() {
+    function calculateLove() {
       const girl = document.getElementById("girlName").value.trim();
       const boy = document.getElementById("boyName").value.trim();
       const resultEl = document.getElementById("result");
@@ -185,12 +182,10 @@
         }
       }
 
-      const q1 = query(ref(db, "loveData"));
-      const snapshot = await get(q1);
-
-      let matchFound = false;
-      if (snapshot.exists()) {
-        snapshot.forEach(entry => {
+      const q1 = firebase.database().ref("loveData");
+      q1.once('value').then((snapshot) => {
+        let matchFound = false;
+        snapshot.forEach((entry) => {
           const data = entry.val();
           if (
             (data.girlName.toLowerCase() === girl.toLowerCase() &&
@@ -203,23 +198,27 @@
             matchFound = true;
           }
         });
-      }
 
-      if (matchFound) return;
+        if (!matchFound) {
+          let score = Math.floor(Math.random() * 100) + 1;
+          resultEl.innerText = `Love score between ${girl} and ${boy} is ${score}% ❤️`;
+          resultEl.classList.add("show-result");
 
-      let score = Math.floor(Math.random() * 100) + 1;
-
-      resultEl.innerText = `Love score between ${girl} and ${boy} is ${score}% ❤️`;
-      resultEl.classList.add("show-result");
-
-      // Save the result to Firebase
-      push(ref(db, "loveData"), {
-        girlName: girl,
-        boyName: boy,
-        score: score,
-        timestamp: new Date().toISOString()
+          // Save the result to Firebase
+          firebase.database().ref('loveData').push({
+            girlName: girl,
+            boyName: boy,
+            score: score,
+            timestamp: new Date().toISOString()
+          });
+        }
       });
     }
+
+    // Adding the event listener after the page loads
+    window.onload = () => {
+      document.getElementById("calcButton").addEventListener("click", calculateLove);
+    };
 
     // Cursor animation
     const cursor = document.querySelector('.cursor');
