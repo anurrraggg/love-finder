@@ -1,107 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Love Calculator</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Love Calculator 💖</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
   <style>
+    * {
+      box-sizing: border-box;
+      cursor: none;
+    }
+
     body {
-      background-color: #121212;
-      color: white;
-      font-family: 'Arial', sans-serif;
       margin: 0;
       padding: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f8e1f4, #d2e9f7);
+      color: #333;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
+      justify-content: center;
       height: 100vh;
       overflow: hidden;
-      cursor: url('https://cdn.pixabay.com/photo/2022/07/26/16/00/cursor-7346881_960_720.png'), auto;
     }
 
     .container {
+      background: #ffffffdd;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
       text-align: center;
-      padding: 20px;
-      border-radius: 10px;
-      background-color: #1f1f1f;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      width: 100%;
+      width: 90%;
       max-width: 400px;
     }
 
     h2 {
-      color: #ff007f;
-      font-size: 36px;
+      font-size: 2rem;
+      color: #ff4b91;
+      margin-bottom: 20px;
     }
 
     input {
-      background-color: #333;
-      color: white;
+      width: 90%;
       padding: 10px;
       margin: 10px 0;
-      border: 1px solid #444;
-      border-radius: 5px;
-      width: 80%;
-      font-size: 16px;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+    }
+
+    input:focus {
+      border-color: #ff4b91;
+      outline: none;
     }
 
     button {
-      background-color: #ff007f;
-      color: white;
-      padding: 10px 20px;
+      background: #ff4b91;
+      color: #fff;
+      padding: 12px 25px;
+      font-size: 1rem;
       border: none;
-      border-radius: 5px;
-      font-size: 18px;
+      border-radius: 50px;
       cursor: pointer;
+      margin-top: 20px;
+      transition: background 0.3s ease;
     }
 
     button:hover {
-      background-color: #ff3385;
+      background: #e84378;
     }
 
     #result {
-      margin-top: 20px;
-      font-size: 20px;
-      color: #00ffb3;
+      font-size: 1.2rem;
+      margin-top: 25px;
+      color: #444;
     }
 
-    #result.error {
-      color: red;
+    /* Custom Cursor Styles */
+    .cursor {
+      width: 20px;
+      height: 20px;
+      background: rgba(255, 75, 145, 0.7);
+      border: 2px solid #ff4b91;
+      border-radius: 50%;
+      position: fixed;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: transform 0.1s ease;
+      z-index: 9999;
     }
 
-    .cooldown-message {
-      margin-top: 10px;
-      color: #ff5722;
-    }
-
-    .footer {
-      margin-top: 20px;
-      font-size: 14px;
-      color: #aaa;
+    .cursor-ring {
+      width: 40px;
+      height: 40px;
+      border: 2px solid #ff4b91;
+      border-radius: 50%;
+      position: fixed;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      z-index: 9998;
+      transition: all 0.15s ease;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>Love Calculator 💖</h2>
-    <input id="girlName" placeholder="Enter girl's name" oninput="debounceSearch()"><br><br>
-    <input id="boyName" placeholder="Enter boy's name" oninput="debounceSearch()"><br><br>
+    <input type="text" id="girlName" placeholder="Enter girl's name">
+    <input type="text" id="boyName" placeholder="Enter boy's name">
     <button onclick="calculateLove()">Calculate Love</button>
-
     <p id="result"></p>
-    <p id="cooldownMessage" class="cooldown-message"></p>
-
-    <div class="footer">
-      <p>Made with 💖 by Love Finder</p>
-    </div>
   </div>
 
-  <script type="module">
-    // Import Firebase SDKs
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getDatabase, ref, push, get, child } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+  <div class="cursor"></div>
+  <div class="cursor-ring"></div>
 
-    // Your Firebase config
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getDatabase, ref, push, query, get } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyCDG2lZpLgJ2PG2WX3TfVGI3HcnzcukC7s",
       authDomain: "lovefinder-193df.firebaseapp.com",
@@ -113,121 +132,69 @@
       measurementId: "G-CHBWSKLVTS"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    let lastSubmissionTime = 0;
-    const submissionCooldown = 30000; // 30 seconds cooldown
-    let debounceTimer;
+    window.calculateLove = async function () {
+      const girl = document.getElementById("girlName").value.trim();
+      const boy = document.getElementById("boyName").value.trim();
+      const resultEl = document.getElementById("result");
 
-    // Function to handle debouncing
-    function debounceSearch() {
-      clearTimeout(debounceTimer);
-
-      debounceTimer = setTimeout(() => {
-        calculateLove();
-      }, 500); // 500ms delay before calling calculateLove function
-    }
-
-    // Check localStorage for previous result
-    function checkLocalStorage(girl, boy) {
-      const key = `${girl}-${boy}`;
-      const storedResult = localStorage.getItem(key);
-      
-      if (storedResult) {
-        const result = JSON.parse(storedResult);
-        document.getElementById("result").innerText = 
-          `Love score between ${result.girl} and ${result.boy} is ${result.score}% (from local cache)`;
-        return true;
+      if (!girl || !boy) {
+        alert("Please enter both names.");
+        return;
       }
-      return false;
-    }
 
-    // Save to localStorage
-    function saveToLocalStorage(girl, boy, score) {
-      const key = `${girl}-${boy}`;
-      const result = {
-        girl,
-        boy,
-        score,
-        timestamp: new Date().toISOString()
-      };
-      localStorage.setItem(key, JSON.stringify(result));
-    }
+      if (girl.toLowerCase() === boy.toLowerCase()) {
+        alert("Names must be different.");
+        return;
+      }
 
-    // Check for duplicate and save to Firebase
-    async function checkForDuplicateAndSave(girl, boy, score) {
-      const loveDataRef = ref(db, "loveData");
-      const snapshot = await get(loveDataRef);
-      
-      let duplicateFound = false;
+      const q1 = query(ref(db, "loveData"));
+      const snapshot = await get(q1);
+      let duplicate = false;
+
       if (snapshot.exists()) {
         snapshot.forEach(entry => {
           const data = entry.val();
-          // Check both combinations (girl, boy) or (boy, girl)
           if (
-            (data.girlName.toLowerCase() === girl.toLowerCase() && data.boyName.toLowerCase() === boy.toLowerCase()) ||
-            (data.girlName.toLowerCase() === boy.toLowerCase() && data.boyName.toLowerCase() === girl.toLowerCase())
+            (data.girlName.toLowerCase() === girl.toLowerCase() &&
+             data.boyName.toLowerCase() === boy.toLowerCase()) ||
+            (data.girlName.toLowerCase() === boy.toLowerCase() &&
+             data.boyName.toLowerCase() === girl.toLowerCase())
           ) {
-            duplicateFound = true; // Found a duplicate
+            duplicate = true;
           }
         });
       }
 
-      if (duplicateFound) {
-        document.getElementById("result").innerText = "This love match has already been calculated.";
-        return; // Skip saving the data
+      if (duplicate) {
+        resultEl.innerText = "You've already tested this love match 💌";
+        return;
       }
 
-      const dataRef = ref(db, "loveData");
-      push(dataRef, {
+      let score = (girl.toLowerCase() === "tanvi" && boy.toLowerCase() === "anurag") ? 100 : Math.floor(Math.random() * 100) + 1;
+
+      resultEl.innerText = `Love score between ${girl} and ${boy} is ${score}% ❤️`;
+
+      push(ref(db, "loveData"), {
         girlName: girl,
         boyName: boy,
         score: score,
         timestamp: new Date().toISOString()
       });
+    };
 
-      saveToLocalStorage(girl, boy, score);
-      document.getElementById("result").innerText = 
-        `Love score between ${girl} and ${boy} is ${score}%`;
-    }
+    // Cursor tracking
+    const cursor = document.querySelector('.cursor');
+    const ring = document.querySelector('.cursor-ring');
 
-    // Calculate love and save to Firebase
-    async function calculateLove() {
-      const girl = document.getElementById("girlName").value.trim();
-      const boy = document.getElementById("boyName").value.trim();
-
-      if (!girl || !boy) {
-        document.getElementById("result").innerText = "Please enter both names.";
-        return;
-      }
-
-      if (girl.toLowerCase() === boy.toLowerCase()) {
-        document.getElementById("result").innerText = "Girl's and Boy's name cannot be the same!";
-        return;
-      }
-
-      // Check for cooldown
-      const currentTime = new Date().getTime();
-      if (currentTime - lastSubmissionTime < submissionCooldown) {
-        document.getElementById("cooldownMessage").innerText = "Please wait before submitting again.";
-        return;
-      }
-
-      lastSubmissionTime = currentTime;
-      document.getElementById("cooldownMessage").innerText = "";
-
-      if (checkLocalStorage(girl, boy)) {
-        return; // If found in localStorage, no need to query Firebase
-      }
-
-      let score = (girl.toLowerCase() === "tanvi" && boy.toLowerCase() === "anurag") 
-        ? 100 
-        : Math.floor(Math.random() * 100) + 1;
-
-      checkForDuplicateAndSave(girl, boy, score);
-    }
+    document.addEventListener('mousemove', (e) => {
+      cursor.style.left = `${e.clientX}px`;
+      cursor.style.top = `${e.clientY}px`;
+      ring.style.left = `${e.clientX}px`;
+      ring.style.top = `${e.clientY}px`;
+    });
   </script>
 </body>
 </html>
