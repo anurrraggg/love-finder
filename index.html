@@ -124,6 +124,16 @@
       0% { transform: translateX(-50%) translateY(0); opacity: 1; }
       100% { transform: translateX(-50%) translateY(-150px); opacity: 0; }
     }
+
+    .special-animation {
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
   </style>
 </head>
 <body>
@@ -192,13 +202,13 @@
         return;
       }
 
-      if (girl.toLowerCase() === boy.toLowerCase()) {
+      const name1 = girl.toLowerCase();
+      const name2 = boy.toLowerCase();
+
+      if (name1 === name2) {
         alert("Names must be different.");
         return;
       }
-
-      const name1 = girl.toLowerCase();
-      const name2 = boy.toLowerCase();
 
       const blockedCombo = (name1 === "faiz" && name2 === "anurag") || (name1 === "anurag" && name2 === "faiz");
       if (blockedCombo) {
@@ -208,7 +218,6 @@
 
       const lastSubmitted = localStorage.getItem('lastSubmitted');
       const timeDiff = lastSubmitted ? Date.now() - new Date(lastSubmitted).getTime() : cooldownTime + 1;
-
       if (timeDiff < cooldownTime || isCooldown) {
         setCooldown();
         return;
@@ -217,34 +226,23 @@
       let finalScore;
       let specialMessage = "";
 
-      const saurabhVariants = ["saurabh", "saurabh diwedi"];
-      const isSaurabh = saurabhVariants.includes(name1) || saurabhVariants.includes(name2);
+      const isTanviAnurag = 
+        (name1 === "tanvi" && name2 === "anurag") || (name1 === "anurag" && name2 === "tanvi");
 
-      if ((name1 === "anurag" && name2 === "tanvi") || (name1 === "tanvi" && name2 === "anurag")) {
+      if (isTanviAnurag) {
         finalScore = 200;
-        specialMessage = "Made for each other 💫";
-      } 
-      if ((name1 === "faiz" && name2 === "ayushi") || (name1 === "ayushi" && name2 === "faiz")) {
+        specialMessage = "You both are made for each other 💫";
+        showHearts(true);
+      } else if ((name1 === "faiz" && name2 === "ayushi") || (name1 === "ayushi" && name2 === "faiz")) {
         finalScore = 150;
         specialMessage = "Made for each other 💫";
-      } else if ((name1 === "riya" || name1 === "riya verma" || name2 === "riya" || name2 === "riya verma") &&
-                 (name1 === "nitin" || name2 === "nitin")) {
-        finalScore = (Math.random() * 10 + 85).toFixed(2);
-      } else if ((name1 === "riya" || name1 === "riya verma" || name2 === "riya" || name2 === "riya verma") &&
-                 !(name1 === "faiz" || name2 === "faiz" || name1 === "nitin" || name2 === "nitin")) {
-        resultEl.innerText = "Sorry, this match with Riya is not allowed.";
-        return;
-      } else if (isSaurabh) {
-        finalScore = (Math.random() * 20 + 50).toFixed(2);
+        showHearts();
       } else {
         finalScore = (Math.random() * 100).toFixed(2);
+        if (parseFloat(finalScore) >= 95) showHearts();
       }
 
       resultEl.innerText = `Love score between ${girl} and ${boy} is ${finalScore}% ❤️ ${specialMessage}`;
-
-      if (parseFloat(finalScore) >= 95 || specialMessage) {
-        showHearts();
-      }
 
       const snapshot = await get(query(ref(db, "loveData")));
       let duplicate = false;
@@ -252,10 +250,9 @@
       if (snapshot.exists()) {
         snapshot.forEach(entry => {
           const data = entry.val();
-          if (
-            (data.girlName.toLowerCase() === name1 && data.boyName.toLowerCase() === name2) ||
-            (data.girlName.toLowerCase() === name2 && data.boyName.toLowerCase() === name1)
-          ) {
+          const g = data.girlName.toLowerCase();
+          const b = data.boyName.toLowerCase();
+          if ((g === name1 && b === name2) || (g === name2 && b === name1)) {
             duplicate = true;
           }
         });
@@ -280,8 +277,8 @@
       resultEl.innerText = `Last result: ${parsed.girlName} and ${parsed.boyName} had a love score of ${parsed.score}% ❤️`;
     }
 
-    function showHearts() {
-      heartsContainer.innerHTML = `<div class="hearts">💖💞💕</div>`;
+    function showHearts(isSpecial = false) {
+      heartsContainer.innerHTML = `<div class="hearts ${isSpecial ? "special-animation" : ""}">💖💞💕</div>`;
       setTimeout(() => { heartsContainer.innerHTML = ''; }, 7000);
     }
 
