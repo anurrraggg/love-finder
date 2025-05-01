@@ -31,7 +31,7 @@
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
       text-align: center;
       width: 95%;
-      max-width: 450px;
+      max-width: 500px;
       transition: all 0.3s ease;
     }
 
@@ -183,15 +183,7 @@
       }, 250);
     }
 
-    function debounce(func, delay) {
-      let timeout;
-      return function(...args) {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(this, args), delay);
-      };
-    }
-
-    window.calculateLove = debounce(async function () {
+    window.calculateLove = async function () {
       const girl = document.getElementById("girlName").value.trim();
       const boy = document.getElementById("boyName").value.trim();
 
@@ -208,7 +200,8 @@
       const name1 = girl.toLowerCase();
       const name2 = boy.toLowerCase();
 
-      if ((name1 === "faiz" && name2 === "anurag") || (name1 === "anurag" && name2 === "faiz")) {
+      const blockedCombo = (name1 === "faiz" && name2 === "anurag") || (name1 === "anurag" && name2 === "faiz");
+      if (blockedCombo) {
         resultEl.innerText = "Sorry, this match is blocked.";
         return;
       }
@@ -221,9 +214,36 @@
         return;
       }
 
+      let finalScore;
+      let specialMessage = "";
+
+      const saurabhVariants = ["saurabh", "saurabh diwedi"];
+      const isSaurabh = saurabhVariants.includes(name1) || saurabhVariants.includes(name2);
+
+      if ((name1 === "faiz" && name2 === "ayushi") || (name1 === "ayushi" && name2 === "faiz")) {
+        finalScore = 150;
+        specialMessage = "Made for each other 💫";
+      } else if ((name1 === "riya" || name1 === "riya verma" || name2 === "riya" || name2 === "riya verma") &&
+                 (name1 === "nitin" || name2 === "nitin")) {
+        finalScore = (Math.random() * 10 + 85).toFixed(2);
+      } else if ((name1 === "riya" || name1 === "riya verma" || name2 === "riya" || name2 === "riya verma") &&
+                 !(name1 === "faiz" || name2 === "faiz" || name1 === "nitin" || name2 === "nitin")) {
+        resultEl.innerText = "Sorry, this match with Riya is not allowed.";
+        return;
+      } else if (isSaurabh) {
+        finalScore = (Math.random() * 20 + 50).toFixed(2);
+      } else {
+        finalScore = (Math.random() * 100).toFixed(2);
+      }
+
+      resultEl.innerText = `Love score between ${girl} and ${boy} is ${finalScore}% ❤️ ${specialMessage}`;
+
+      if (parseFloat(finalScore) >= 95 || specialMessage) {
+        showHearts();
+      }
+
       const snapshot = await get(query(ref(db, "loveData")));
       let duplicate = false;
-      let existingScore = null;
 
       if (snapshot.exists()) {
         snapshot.forEach(entry => {
@@ -233,30 +253,8 @@
             (data.girlName.toLowerCase() === name2 && data.boyName.toLowerCase() === name1)
           ) {
             duplicate = true;
-            existingScore = data.score;
           }
         });
-      }
-
-      const specialScores = {
-        [btoa("tanvi-anurag")]: 100.00,
-        [btoa("riya-nitin")]: 99.99,
-        [btoa("mansha-anurag")]: 100.00,
-        [btoa("reyna-anurag")]: 100.00,
-        [btoa("misthi-shivam")]: 100.00,
-        [btoa("shivam-misthi")]: 100.00
-      };
-
-      const combo1 = btoa(`${name1}-${name2}`);
-      const combo2 = btoa(`${name2}-${name1}`);
-
-      const score = specialScores[combo1] || specialScores[combo2] || (Math.random() * 100);
-      const finalScore = parseFloat(score).toFixed(2);
-
-      resultEl.innerText = `Love score between ${girl} and ${boy} is ${finalScore}% ❤️`;
-
-      if (parseFloat(finalScore) >= 95) {
-        showHearts();
       }
 
       if (!duplicate) {
@@ -270,7 +268,7 @@
 
       localStorage.setItem('lastResult', JSON.stringify({ girlName: girl, boyName: boy, score: finalScore }));
       setCooldown();
-    }, 500);
+    };
 
     const cachedResult = localStorage.getItem('lastResult');
     if (cachedResult) {
