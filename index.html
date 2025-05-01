@@ -113,30 +113,16 @@
 
     .hearts {
       position: absolute;
-      top: 40%;
+      top: 20px;
       left: 50%;
-      transform: translate(-50%, -50%);
+      transform: translateX(-50%);
       font-size: 3rem;
-      font-weight: bold;
-      color: #ff007f;
-      text-shadow: 0 0 10px #fff, 0 0 20px #ff007f, 0 0 30px #ff007f;
-      animation: floatHearts 6s ease-out forwards;
-      opacity: 0;
+      animation: floatHearts 7s ease infinite;
     }
 
     @keyframes floatHearts {
-      0% {
-        transform: translate(-50%, -50%) scale(0.9);
-        opacity: 0;
-      }
-      30% {
-        opacity: 1;
-        transform: translate(-50%, -60%) scale(1.05);
-      }
-      100% {
-        transform: translate(-50%, -120%) scale(1.1);
-        opacity: 0;
-      }
+      0% { transform: translateX(-50%) translateY(0); opacity: 1; }
+      100% { transform: translateX(-50%) translateY(-150px); opacity: 0; }
     }
   </style>
 </head>
@@ -256,7 +242,9 @@
         [btoa("tanvi-anurag")]: 100.00,
         [btoa("riya-nitin")]: 99.99,
         [btoa("mansha-anurag")]: 100.00,
-        [btoa("reyna-anurag")]: 100.00
+        [btoa("reyna-anurag")]: 100.00,
+        [btoa("mishti-shivam")]: 100.00,
+        [btoa("shivam-mishti")]: 100.00
       };
 
       const combo1 = btoa(`${name1}-${name2}`);
@@ -291,8 +279,8 @@
     }
 
     function showHearts() {
-      heartsContainer.innerHTML = `<div class="hearts">Made for each other 💑</div>`;
-      setTimeout(() => { heartsContainer.innerHTML = ''; }, 6000);
+      heartsContainer.innerHTML = `<div class="hearts">💖💞💕</div>`;
+      setTimeout(() => { heartsContainer.innerHTML = ''; }, 7000);
     }
 
     const cursor = document.querySelector('.cursor');
