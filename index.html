@@ -220,6 +220,10 @@
       const saurabhVariants = ["saurabh", "saurabh diwedi"];
       const isSaurabh = saurabhVariants.includes(name1) || saurabhVariants.includes(name2);
 
+      if ((name1 === "anurag" && name2 === "tanvi") || (name1 === "tanvi" && name2 === "anurag")) {
+        finalScore = 200;
+        specialMessage = "Made for each other 💫";
+      } 
       if ((name1 === "faiz" && name2 === "ayushi") || (name1 === "ayushi" && name2 === "faiz")) {
         finalScore = 150;
         specialMessage = "Made for each other 💫";
