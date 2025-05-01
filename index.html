@@ -6,11 +6,7 @@
   <title>Love Calculator 💖</title>
   <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
   <style>
-    * {
-      box-sizing: border-box;
-      cursor: none;
-    }
-
+    * { box-sizing: border-box; cursor: none; }
     body {
       margin: 0;
       padding: 0;
@@ -22,7 +18,6 @@
       height: 100vh;
       overflow: hidden;
     }
-
     .container {
       background: rgba(255, 255, 255, 0.25);
       backdrop-filter: blur(15px);
@@ -32,16 +27,13 @@
       text-align: center;
       width: 95%;
       max-width: 450px;
-      transition: all 0.3s ease;
     }
-
     h2 {
       font-family: 'Pacifico', cursive;
       font-size: 2.5rem;
       color: #ff4b91;
       margin-bottom: 25px;
     }
-
     input {
       width: 100%;
       padding: 12px 15px;
@@ -49,15 +41,10 @@
       border: none;
       border-radius: 15px;
       font-size: 1rem;
-      outline: none;
       background: rgba(255, 255, 255, 0.8);
-      transition: all 0.3s ease;
+      outline: none;
     }
-
-    input:focus {
-      box-shadow: 0 0 8px #ff4b91aa;
-    }
-
+    input:focus { box-shadow: 0 0 8px #ff4b91aa; }
     button {
       background: #ff4b91;
       color: #fff;
@@ -69,26 +56,21 @@
       margin-top: 20px;
       transition: transform 0.2s, background 0.3s ease;
     }
-
     button:hover {
       background: #e84378;
       transform: scale(1.05);
     }
-
     #result {
       font-size: 1.3rem;
       margin-top: 25px;
       color: #444;
       min-height: 40px;
-      transition: all 0.3s ease;
     }
-
     #cooldownTimer {
       margin-top: 10px;
       color: #ff4b91;
       font-weight: 500;
     }
-
     .cursor, .cursor-ring {
       position: fixed;
       pointer-events: none;
@@ -97,20 +79,8 @@
       transform: translate(-50%, -50%);
       mix-blend-mode: difference;
     }
-
-    .cursor {
-      width: 12px;
-      height: 12px;
-      background: #fff;
-    }
-
-    .cursor-ring {
-      width: 30px;
-      height: 30px;
-      border: 2px solid #fff;
-      transition: all 0.1s ease;
-    }
-
+    .cursor { width: 12px; height: 12px; background: #fff; }
+    .cursor-ring { width: 30px; height: 30px; border: 2px solid #fff; }
     .hearts {
       position: absolute;
       top: 20px;
@@ -119,7 +89,6 @@
       font-size: 2rem;
       animation: floatHearts 3s ease infinite;
     }
-
     @keyframes floatHearts {
       0% { transform: translateX(-50%) translateY(0); opacity: 1; }
       100% { transform: translateX(-50%) translateY(-100px); opacity: 0; }
@@ -151,8 +120,7 @@
       projectId: "lovefinder-193df",
       storageBucket: "lovefinder-193df.appspot.com",
       messagingSenderId: "572820717197",
-      appId: "1:572820717197:web:e67be9eaf6087cda4cacc4",
-      measurementId: "G-CHBWSKLVTS"
+      appId: "1:572820717197:web:e67be9eaf6087cda4cacc4"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -160,8 +128,8 @@
 
     let isCooldown = false;
     const cooldownTime = 3000;
-    const cooldownTimerEl = document.getElementById('cooldownTimer');
     const resultEl = document.getElementById("result");
+    const cooldownTimerEl = document.getElementById("cooldownTimer");
     const heartsContainer = document.getElementById("heartsContainer");
 
     function setCooldown() {
@@ -172,7 +140,6 @@
       const interval = setInterval(() => {
         const now = Date.now();
         const timeLeft = Math.max(0, Math.ceil((end - now) / 1000));
-
         if (timeLeft <= 0) {
           clearInterval(interval);
           cooldownTimerEl.innerText = '';
@@ -195,15 +162,8 @@
       const girl = document.getElementById("girlName").value.trim();
       const boy = document.getElementById("boyName").value.trim();
 
-      if (!girl || !boy) {
-        alert("Please enter both names.");
-        return;
-      }
-
-      if (girl.toLowerCase() === boy.toLowerCase()) {
-        alert("Names must be different.");
-        return;
-      }
+      if (!girl || !boy) return alert("Please enter both names.");
+      if (girl.toLowerCase() === boy.toLowerCase()) return alert("Names must be different.");
 
       const name1 = girl.toLowerCase();
       const name2 = boy.toLowerCase();
@@ -215,7 +175,6 @@
 
       const lastSubmitted = localStorage.getItem('lastSubmitted');
       const timeDiff = lastSubmitted ? Date.now() - new Date(lastSubmitted).getTime() : cooldownTime + 1;
-
       if (timeDiff < cooldownTime || isCooldown) {
         setCooldown();
         return;
@@ -238,24 +197,29 @@
         });
       }
 
+      // Special name logic
+      const combo1 = btoa(`${name1}-${name2}`);
+      const combo2 = btoa(`${name2}-${name1}`);
       const specialScores = {
-        [btoa("tanvi-anurag")]: 100.00,
-        [btoa("riya-nitin")]: 99.99,
-        [btoa("mansha-anurag")]: 100.00,
+        [btoa("Tanvi-Anurag")]: 100.00,
+        [btoa("Riya-Nitin")]: 99.99,
+        [btoa("Mansha-Anurag")]: 100.00,
         [btoa("reyna-anurag")]: 100.00
       };
 
-      const combo1 = btoa(`${name1}-${name2}`);
-      const combo2 = btoa(`${name2}-${name1}`);
+      let score;
+      if ((name1 === "Shivam" || name2 === "shivam") && (name1 === "Misthi" || name2 === "misthi")) {
+        score = 100.0;
+      } else if (name1 === "shivam" || name2 === "shivam") {
+        score = (95 + Math.random() * 5);
+      } else {
+        score = specialScores[combo1] || specialScores[combo2] || (Math.random() * 100);
+      }
 
-      const score = specialScores[combo1] || specialScores[combo2] || (Math.random() * 100);
       const finalScore = parseFloat(score).toFixed(2);
-
       resultEl.innerText = `Love score between ${girl} and ${boy} is ${finalScore}% ❤️`;
 
-      if (parseFloat(finalScore) >= 95) {
-        showHearts();
-      }
+      if (parseFloat(finalScore) >= 95) showHearts();
 
       if (!duplicate) {
         push(ref(db, "loveData"), {
@@ -270,12 +234,6 @@
       setCooldown();
     }, 500);
 
-    const cachedResult = localStorage.getItem('lastResult');
-    if (cachedResult) {
-      const parsed = JSON.parse(cachedResult);
-      resultEl.innerText = `Last result: ${parsed.girlName} and ${parsed.boyName} had a love score of ${parsed.score}% ❤️`;
-    }
-
     function showHearts() {
       heartsContainer.innerHTML = `<div class="hearts">💖💞💕</div>`;
       setTimeout(() => { heartsContainer.innerHTML = ''; }, 3000);
@@ -283,13 +241,18 @@
 
     const cursor = document.querySelector('.cursor');
     const ring = document.querySelector('.cursor-ring');
-
     document.addEventListener('mousemove', (e) => {
       cursor.style.left = `${e.clientX}px`;
       cursor.style.top = `${e.clientY}px`;
       ring.style.left = `${e.clientX}px`;
       ring.style.top = `${e.clientY}px`;
     });
+
+    const cachedResult = localStorage.getItem('lastResult');
+    if (cachedResult) {
+      const parsed = JSON.parse(cachedResult);
+      resultEl.innerText = `Last result: ${parsed.girlName} and ${parsed.boyName} had a love score of ${parsed.score}% ❤️`;
+    }
   </script>
 </body>
 </html>
